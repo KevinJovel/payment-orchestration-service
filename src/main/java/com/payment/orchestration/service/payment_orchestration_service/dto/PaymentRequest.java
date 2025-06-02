@@ -1,5 +1,7 @@
 package com.payment.orchestration.service.payment_orchestration_service.dto;
 
+import java.math.BigDecimal;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -10,7 +12,7 @@ public class PaymentRequest {
 
     @NotNull
     @Positive
-    private Double paymentAmount;
+    private BigDecimal paymentAmount;
 
     @NotBlank
     private String paymentMethod;
@@ -28,11 +30,11 @@ public class PaymentRequest {
         this.customerId = customerId;
     }
 
-    public Double getPaymentAmount() {
+    public BigDecimal getPaymentAmount() {
         return paymentAmount;
     }
 
-    public void setPaymentAmount(Double paymentAmount) {
+    public void setPaymentAmount(BigDecimal paymentAmount) {
         this.paymentAmount = paymentAmount;
     }
 

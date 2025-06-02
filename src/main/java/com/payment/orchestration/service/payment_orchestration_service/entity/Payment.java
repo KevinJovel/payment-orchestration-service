@@ -94,5 +94,6 @@ public class Payment {
     public void setTransactionReference(String transactionReference) {
         this.transactionReference = transactionReference;
     }
+    
 
 }

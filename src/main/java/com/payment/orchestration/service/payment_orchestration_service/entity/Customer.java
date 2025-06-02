@@ -20,6 +20,7 @@ public class Customer {
     @Size(min = 1, max = 36)
     @Column(name = "customer_id", nullable = false, length = 20)
     private String customerId; 
+    
     @NotBlank
     @Size(max = 150)
     @Column(name = "name", nullable = false, length = 150)
