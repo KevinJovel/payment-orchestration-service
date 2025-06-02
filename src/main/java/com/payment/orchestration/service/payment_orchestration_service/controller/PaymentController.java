@@ -7,13 +7,14 @@ import com.payment.orchestration.service.payment_orchestration_service.dto.Payme
 import com.payment.orchestration.service.payment_orchestration_service.dto.PaymentResponse;
 import com.payment.orchestration.service.payment_orchestration_service.service.PaymentService;
 
-import java.util.List;
+// import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+// import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import com.payment.orchestration.service.payment_orchestration_service.entity.Payment;
+// import com.payment.orchestration.service.payment_orchestration_service.entity.Payment;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -24,9 +25,13 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    @GetMapping
-    public List<Payment> list() {
-        return paymentService.findAll();
+    // @GetMapping
+    // public List<Payment> list() {
+    // return paymentService.findAll();
+    // }
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello from Swagger!";
     }
 
     @PostMapping

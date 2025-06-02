@@ -51,8 +51,8 @@ public class PaymentService {
         return java.util.UUID.randomUUID().toString();
     }
 
-    @Transactional(readOnly = true)
-    public List<Payment> findAll() {
-        return paymentRepository.findAll();
-    }
+    // @Transactional(readOnly = true)
+    // public List<Payment> findAll() {
+    //     return paymentRepository.findAll();
+    // }
 }
