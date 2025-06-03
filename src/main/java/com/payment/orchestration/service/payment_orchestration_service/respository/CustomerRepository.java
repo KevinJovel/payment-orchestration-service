@@ -10,7 +10,4 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 
     Optional<Customer> getCustomerByCustomerId(String customerId);
 
-    // Customer save(Customer customer);
-
-    // boolean existsById(String customerId);
 }

@@ -19,11 +19,4 @@ public class CustomerService {
         return customerRepository.findById(customerId);
     }
 
-    // public Customer saveCustomer(Customer customer) {
-    //     return customerRepository.save(customer);
-    // }
-
-    // public boolean existsById(String customerId) {
-    //     return customerRepository.existsById(customerId);
-    // }
 }
