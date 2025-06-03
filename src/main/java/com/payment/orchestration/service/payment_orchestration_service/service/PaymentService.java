@@ -1,15 +1,17 @@
 package com.payment.orchestration.service.payment_orchestration_service.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.payment.orchestration.service.payment_orchestration_service.dto.PaymentRequest;
 import com.payment.orchestration.service.payment_orchestration_service.dto.PaymentResponse;
+import com.payment.orchestration.service.payment_orchestration_service.dto.PaymentValidationRequest;
 import com.payment.orchestration.service.payment_orchestration_service.entity.Customer;
 import com.payment.orchestration.service.payment_orchestration_service.entity.Payment;
 import com.payment.orchestration.service.payment_orchestration_service.respository.PaymentRepository;
@@ -35,24 +37,57 @@ public class PaymentService {
         Payment payment = new Payment();
         payment.setCustomer(customerOpt.get());
         payment.setAmount(request.getPaymentAmount());
+        payment.setDescription(request.getDescription());
         payment.setPaymentMethod(request.getPaymentMethod());
-        payment.setTransactionReference(generateTransactionReference());
+        payment.setTransactionReference(request.getTransactionReference());
+        payment.setStatus("PENDING");
         payment.setPaymentDate(LocalDateTime.now());
 
         // Guardar pago
         paymentRepository.save(payment);
-
-        // Retornar respuesta exitosa
-        return new PaymentResponse("success", "Pago procesado con éxito");
+        // Llamada al servicio validador
+        boolean success = callValidator(payment);
+        if (success) {
+            payment.setStatus("APPROVED");
+            paymentRepository.save(payment);
+            return new PaymentResponse("success", "Pago procesado con éxito");
+        } else {
+            payment.setStatus("REJECTED");
+            paymentRepository.save(payment);
+            return new PaymentResponse("success", "Pago procesado con éxito");
+        }
     }
 
-    private String generateTransactionReference() {
-        // Genera un string único para la referencia, por ejemplo UUID o custom
-        return java.util.UUID.randomUUID().toString();
+    private boolean callValidator(Payment payment) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String validatorUrl = "http://localhost:8081/payments/apply"; // URL del segundo servicio
+
+        // Crear request con lo necesario para validar y aplicar
+        PaymentValidationRequest request = new PaymentValidationRequest(
+            payment.getTransactionReference(),
+            payment.getCustomer().getCustomerId(),
+            payment.getAmount());
+
+        try {
+            ResponseEntity<PaymentResponse> response = restTemplate.postForEntity(
+                    validatorUrl,
+                    request,
+                    PaymentResponse.class);
+
+            return response.getStatusCode() == HttpStatus.OK &&
+                    response.getBody() != null &&
+                    "SUCCESS".equals(response.getBody().getStatus());
+
+        } catch (Exception ex) {
+            System.out.println("Error al llamar al validador: " + ex.getMessage());
+            return false;
+        }
     }
 
-    // @Transactional(readOnly = true)
-    // public List<Payment> findAll() {
-    //     return paymentRepository.findAll();
+    // private String generateTransactionReference() {
+    // // Genera un string único para la referencia, por ejemplo UUID o custom
+    // return java.util.UUID.randomUUID().toString();
     // }
+
 }

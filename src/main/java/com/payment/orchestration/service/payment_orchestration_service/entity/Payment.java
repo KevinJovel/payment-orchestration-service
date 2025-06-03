@@ -26,6 +26,9 @@ public class Payment {
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
+    
+    @Column(name = "description", nullable = false, length = 150)
+    private String description;
 
     @Column(name = "payment_method", nullable = false, length = 50)
     private String paymentMethod;
@@ -45,6 +48,14 @@ public class Payment {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Customer getCustomer() {
