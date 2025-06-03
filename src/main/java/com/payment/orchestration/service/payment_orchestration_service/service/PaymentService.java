@@ -3,7 +3,6 @@ package com.payment.orchestration.service.payment_orchestration_service.service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,26 +47,28 @@ public class PaymentService {
         // Llamada al servicio validador
         boolean success = callValidator(payment);
         if (success) {
-            payment.setStatus("APPROVED");
+            payment.setStatus("PAID");
             paymentRepository.save(payment);
             return new PaymentResponse("success", "Pago procesado con éxito");
         } else {
             payment.setStatus("REJECTED");
             paymentRepository.save(payment);
-            return new PaymentResponse("success", "Pago procesado con éxito");
+            return new PaymentResponse("error", "Ocurrió un error al registrar el pago.");
         }
     }
 
     private boolean callValidator(Payment payment) {
         RestTemplate restTemplate = new RestTemplate();
 
-        String validatorUrl = "http://localhost:8081/payments/apply"; // URL del segundo servicio
+        String validatorUrl = "http://localhost:8081/api/validate"; // URL del segundo servicio
 
         // Crear request con lo necesario para validar y aplicar
         PaymentValidationRequest request = new PaymentValidationRequest(
-            payment.getTransactionReference(),
-            payment.getCustomer().getCustomerId(),
-            payment.getAmount());
+                payment.getTransactionReference(),
+                payment.getCustomer().getCustomerId(),
+                payment.getAmount(),
+                payment.getPaymentMethod(),
+                payment.getStatus());
 
         try {
             ResponseEntity<PaymentResponse> response = restTemplate.postForEntity(
@@ -76,8 +77,9 @@ public class PaymentService {
                     PaymentResponse.class);
 
             return response.getStatusCode() == HttpStatus.OK &&
-                    response.getBody() != null &&
-                    "SUCCESS".equals(response.getBody().getStatus());
+                    Optional.ofNullable(response.getBody())
+                            .map(body -> "SUCCESS".equalsIgnoreCase(body.getStatus()))
+                            .orElse(false);
 
         } catch (Exception ex) {
             System.out.println("Error al llamar al validador: " + ex.getMessage());
