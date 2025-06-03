@@ -17,6 +17,7 @@ import com.payment.orchestration.service.payment_orchestration_service.entity.Cu
 import com.payment.orchestration.service.payment_orchestration_service.entity.Payment;
 import com.payment.orchestration.service.payment_orchestration_service.exception.DuplicateTransactionException;
 import com.payment.orchestration.service.payment_orchestration_service.exception.InvalidPaymentException;
+import com.payment.orchestration.service.payment_orchestration_service.exception.ValidatorUnavailableException;
 import com.payment.orchestration.service.payment_orchestration_service.respository.PaymentRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -67,11 +68,12 @@ public class PaymentService {
         if (success) {
             payment.setStatus("PAID");
             paymentRepository.save(payment);
-            return new PaymentResponse("success", "Pago procesado con éxito",request.getTransactionReference());
+            return new PaymentResponse("success", "Pago procesado con éxito", request.getTransactionReference());
         } else {
             payment.setStatus("REJECTED");
             paymentRepository.save(payment);
-            return new PaymentResponse("error", "Ocurrió un error al registrar el pago.",request.getTransactionReference());
+            return new PaymentResponse("error", "Ocurrió un error al registrar el pago.",
+                    request.getTransactionReference());
         }
     }
 
@@ -99,8 +101,8 @@ public class PaymentService {
                             .orElse(false);
 
         } catch (Exception ex) {
-            System.out.println("Error al llamar al validador: " + ex.getMessage());
-            return false;
+            throw new ValidatorUnavailableException("Servicio de validación no disponible",
+                    payment.getTransactionReference());
         }
     }
 
