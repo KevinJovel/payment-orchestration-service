@@ -42,9 +42,12 @@ public class PaymentService {
         // Validar que el cliente existe
         Optional<Customer> customerOpt = customerService.getCustomerByCustomerId(request.getCustomerId());
         if (customerOpt.isEmpty()) {
-            return new PaymentResponse("error", "Cliente no encontrado");
+            return new PaymentResponse(
+                    "error",
+                    "Cliente no encontrado",
+                    request.getTransactionReference());
         }
-        validatePaymentAmount(request.getPaymentAmount());
+        validatePaymentAmount(request.getPaymentAmount(), request.getTransactionReference());
         validateDuplicateTransaction(request.getTransactionReference());
 
         // Crear entidad Payment con los datos del request
@@ -64,18 +67,18 @@ public class PaymentService {
         if (success) {
             payment.setStatus("PAID");
             paymentRepository.save(payment);
-            return new PaymentResponse("success", "Pago procesado con éxito");
+            return new PaymentResponse("success", "Pago procesado con éxito",request.getTransactionReference());
         } else {
             payment.setStatus("REJECTED");
             paymentRepository.save(payment);
-            return new PaymentResponse("error", "Ocurrió un error al registrar el pago.");
+            return new PaymentResponse("error", "Ocurrió un error al registrar el pago.",request.getTransactionReference());
         }
     }
 
     private boolean callValidator(Payment payment) {
 
         RestTemplate restTemplate = new RestTemplate();
-        
+
         // Crear request con lo necesario para validar y aplicar
         PaymentValidationRequest request = new PaymentValidationRequest(
                 payment.getTransactionReference(),
@@ -101,23 +104,18 @@ public class PaymentService {
         }
     }
 
-    private void validatePaymentAmount(BigDecimal amount) {
+    private void validatePaymentAmount(BigDecimal amount, String transactionReference) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidPaymentException("El monto del pago debe ser mayor a cero.");
+            throw new InvalidPaymentException("El monto del pago debe ser mayor a cero.", transactionReference);
         }
         if (amount.compareTo(maxAmount) > 0) {
-            throw new InvalidPaymentException("El monto excede el máximo permitido.");
+            throw new InvalidPaymentException("El monto excede el máximo permitido.", transactionReference);
         }
     }
 
     private void validateDuplicateTransaction(String transactionReference) {
         if (paymentRepository.existsByTransactionReference(transactionReference)) {
-            throw new DuplicateTransactionException("La transacción ya fue registrada.");
+            throw new DuplicateTransactionException("La transacción ya fue registrada.", transactionReference);
         }
     }
-    // private String generateTransactionReference() {
-    // // Genera un string único para la referencia, por ejemplo UUID o custom
-    // return java.util.UUID.randomUUID().toString();
-    // }
-
 }
